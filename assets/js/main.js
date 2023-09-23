@@ -1,8 +1,5 @@
-export {url};
-
 const pokemonList = document.getElementById('pokemonList')
 const loadMoreButton = document.getElementById('loadMoreButton')
-let url = "https://pokeapi.co/api/v2/pokemon/"
 
 const maxRecords = 151
 const limit = 10
@@ -27,37 +24,46 @@ function convertPokemonToLi(pokemon) {
 }
 
 function loadPokemonItens(offset, limit) {
-    pokeApi.getPokemons(offset, limit).then((pokemons = []) => {
-        const newHtml = pokemons.map(convertPokemonToLi).join('')
-        pokemonList.innerHTML += newHtml
+    if(pokemonList && loadMoreButton){
+        pokeApi.getPokemons(offset, limit).then((pokemons = []) => {
+            const newHtml = pokemons.map(convertPokemonToLi).join('');
+            pokemonList.innerHTML += newHtml;
 
-        // Após carregar os novos elementos <li>, adicione o event listener a cada um.
-        const listItemElements = document.querySelectorAll('.pokemon');
-        listItemElements.forEach((element) => {
-            element.addEventListener('click', () => {
-                const link = element.getAttribute('data-link');
-                if (link) {
-                    url = `https://pokeapi.co/api/v2/pokemon/${element.getAttribute('data-number')}`
-                    window.location.href = link;
-                }
+            // Após carregar os novos elementos <li>, adicione o event listener a cada um.
+            const listItemElements = document.querySelectorAll('.pokemon');
+            listItemElements.forEach((element) => {
+                
+                element.addEventListener('click', () => {
+                    const link = element.getAttribute('data-link');
+                    const dataNumber = element.getAttribute('data-number');
+                    if (link) {               
+                        window.location.href = link + '?dataNumber=' + dataNumber;
+                    }
+                });
             });
-        });
-    })
+        })
+    }
 }
 
+loadPokemonItens(offset, limit);
 
-loadPokemonItens(offset, limit)
+function setupLoadMoreButton() {
+    const loadMoreButton = document.getElementById('loadMoreButton');
 
-loadMoreButton.addEventListener('click', () => {
-    offset += limit
-    const qtdRecordsWithNexPage = offset + limit
+    if (loadMoreButton) {
+        loadMoreButton.addEventListener('click', () => {
+            offset += limit;
+            const qtdRecordsWithNextPage = offset + limit;
 
-    if (qtdRecordsWithNexPage >= maxRecords) {
-        const newLimit = maxRecords - offset
-        loadPokemonItens(offset, newLimit)
-
-        loadMoreButton.parentElement.removeChild(loadMoreButton)
-    } else {
-        loadPokemonItens(offset, limit)
+            if (qtdRecordsWithNextPage >= maxRecords) {
+                const newLimit = maxRecords - offset;
+                loadPokemonItens(offset, newLimit);
+                loadMoreButton.parentElement.removeChild(loadMoreButton);
+            } else {
+                loadPokemonItens(offset, limit);
+            }
+        });
     }
-})
+}
+
+document.addEventListener('DOMContentLoaded', setupLoadMoreButton);
